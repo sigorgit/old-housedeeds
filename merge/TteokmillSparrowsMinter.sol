@@ -1439,11 +1439,20 @@ contract KIP17Pausable is KIP13, KIP17, Pausable {
 
 contract TteokmillSparrows is Ownable, KIP17Full("Tteokmill Sparrows", "SPARROWS"), KIP17Mintable, KIP17Pausable {
 
+    event SetMentor(address mentor);
+
+    address public mentor;
+
+    function setMentor(address _mentor) onlyOwner external {
+        mentor = _mentor;
+        emit SetMentor(_mentor);
+    }
+
     event SetBaseURI(string baseURI);
 
     string public baseURI = "https://api.tteok.org/sparrows/";
 
-    function setBaseURI(string calldata _baseURI) external onlyOwner {
+    function setBaseURI(string calldata _baseURI) onlyOwner external {
         baseURI = _baseURI;
         emit SetBaseURI(_baseURI);
     }
@@ -1477,7 +1486,11 @@ contract TteokmillSparrows is Ownable, KIP17Full("Tteokmill Sparrows", "SPARROWS
     mapping(uint256 => string) public ments;
 
     function setMent(uint256 id, string calldata ment) external {
-        require(msg.sender == ownerOf(id) || msg.sender == owner());
+        require(
+            isMinter(msg.sender) ||
+            msg.sender == mentor ||
+            msg.sender == owner()
+        );
         ments[id] = ment;
     }
 }
@@ -1516,6 +1529,7 @@ contract TteokmillSparrowsMinter is Ownable {
     }
 
     uint256 public mintPrice = 1000 * 1e8;
+    mapping(address => uint256) public mintCounts;
 
     function setMintPrice(uint256 _price) external onlyOwner {
         mintPrice = _price;
@@ -1527,10 +1541,17 @@ contract TteokmillSparrowsMinter is Ownable {
         limit = _limit;
     }
 
-    function mint() external {
-        require(limit > 0);
-        nft.mint(msg.sender, nft.totalSupply());
+    function mint(string calldata ment) external {
+
+        require(limit > 0 && bytes(ment).length > 0);
+        require(whitelist.whitelist(msg.sender));
+        require(mintCounts[msg.sender] < 10);
+
+        uint256 id = nft.totalSupply();
+        nft.mint(msg.sender, id);
+        nft.setMent(id, ment);
         ijm.transferFrom(msg.sender, address(this), mintPrice);
+        mintCounts[msg.sender] = mintCounts[msg.sender].add(1);
         limit = limit.sub(1);
     }
 

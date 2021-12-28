@@ -24,6 +24,7 @@ contract TteokmillSparrowsMinter is Ownable {
     }
 
     uint256 public mintPrice = 1000 * 1e8;
+    mapping(address => uint256) public mintCounts;
 
     function setMintPrice(uint256 _price) external onlyOwner {
         mintPrice = _price;
@@ -35,10 +36,17 @@ contract TteokmillSparrowsMinter is Ownable {
         limit = _limit;
     }
 
-    function mint() external {
-        require(limit > 0);
-        nft.mint(msg.sender, nft.totalSupply());
+    function mint(string calldata ment) external {
+
+        require(limit > 0 && bytes(ment).length > 0);
+        require(whitelist.whitelist(msg.sender));
+        require(mintCounts[msg.sender] < 10);
+
+        uint256 id = nft.totalSupply();
+        nft.mint(msg.sender, id);
+        nft.setMent(id, ment);
         ijm.transferFrom(msg.sender, address(this), mintPrice);
+        mintCounts[msg.sender] = mintCounts[msg.sender].add(1);
         limit = limit.sub(1);
     }
 

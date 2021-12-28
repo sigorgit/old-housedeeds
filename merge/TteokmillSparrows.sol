@@ -1341,11 +1341,20 @@ contract Ownable {
 
 contract TteokmillSparrows is Ownable, KIP17Full("Tteokmill Sparrows", "SPARROWS"), KIP17Mintable, KIP17Pausable {
 
+    event SetMentor(address mentor);
+
+    address public mentor;
+
+    function setMentor(address _mentor) onlyOwner external {
+        mentor = _mentor;
+        emit SetMentor(_mentor);
+    }
+
     event SetBaseURI(string baseURI);
 
     string public baseURI = "https://api.tteok.org/sparrows/";
 
-    function setBaseURI(string calldata _baseURI) external onlyOwner {
+    function setBaseURI(string calldata _baseURI) onlyOwner external {
         baseURI = _baseURI;
         emit SetBaseURI(_baseURI);
     }
@@ -1379,7 +1388,11 @@ contract TteokmillSparrows is Ownable, KIP17Full("Tteokmill Sparrows", "SPARROWS
     mapping(uint256 => string) public ments;
 
     function setMent(uint256 id, string calldata ment) external {
-        require(msg.sender == ownerOf(id) || msg.sender == owner());
+        require(
+            isMinter(msg.sender) ||
+            msg.sender == mentor ||
+            msg.sender == owner()
+        );
         ments[id] = ment;
     }
 }
