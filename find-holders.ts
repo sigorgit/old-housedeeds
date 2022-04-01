@@ -14,5 +14,5 @@ import PFPStoreContract from "./src/PFPStoreContract";
             results.push({ id, address: owner });
         }
     }
-    fs.writeFileSync("./snapshot.json", JSON.stringify(results));
+    fs.writeFileSync("./snapshot-20220308.json", JSON.stringify(results));
 })();

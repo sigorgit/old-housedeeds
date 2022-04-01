@@ -69,10 +69,13 @@ contract TteokmillSparrowsPFP is Ownable, KIP17Full("Tteokmill Sparrows", "SPARR
         ments[id] = ment;
     }
 
-    function massMint(address[] calldata owners) external onlyMinter {
-        uint256 length = owners.length;
-        for (uint256 id = 0; id < length; id += 1) {
-            mint(owners[id], id);
+    function migrate(uint256 start, uint256 end) external onlyOwner {
+        for (uint256 id = start; id < end; id += 1) {
+            address owner = origin.ownerOf(id);
+            // KLUBS
+            if (owner != 0xeF50df13f88070662459863D05cCD9581dfB1085) {
+                mint(owner, id);
+            }
             ments[id] = origin.ments(id);
         }
     }
